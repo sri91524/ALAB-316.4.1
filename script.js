@@ -22,13 +22,16 @@ let inputUserName = "";
 
 
 let strErrMsg = "";
+const regex = /^[A-Za-z0-9]+$/;  
 
 username.addEventListener("change", function(e){
     inputUserName= e.target.value;
-    const regex = /^[A-Za-z0-9]+$/;     
-    
+    CheckUserName(inputUserName); 
+});
+
+function CheckUserName(uname){
     strErrMsg = "The username cannot contain any special characters or whitespace."; 
-    if(!regex.test(inputUserName))
+    if(!regex.test(uname))
     {           
         checkErrMsgDisplay(strErrMsg);
         username.focus(); 
@@ -41,7 +44,7 @@ username.addEventListener("change", function(e){
     showErrorDialog();   
  
     //Set removes duplicates
-    const uniqueCharacters = new Set(inputUserName);
+    const uniqueCharacters = new Set(uname);
     strErrMsg = "The username must contain at least two unique characters.";  
     
     if(uniqueCharacters.size < 2){                        
@@ -53,9 +56,10 @@ username.addEventListener("change", function(e){
     {
         removeErrMsgIfExist(strErrMsg);        
     }   
-    showErrorDialog(); 
+    showErrorDialog();
 
-});
+}
+
 // ToDo Part3-- 2 -- Registration Form - Email Validation:
 // The email must be a valid email address.
 // The email must not be from the domain "example.com."
@@ -192,7 +196,11 @@ function ValidateLoginForm(e){
 function ValidateRegistrationForm(e){   
 
     e.preventDefault();
-
+    let usrName = username.value;
+    let pwd = password.value;
+    let usrEmail = email.value; 
+    CheckUserName(usrName);
+    
     strErrMsg ="Sorry, Username already taken!";
     removeErrMsgIfExist(strErrMsg);
 
@@ -206,10 +214,8 @@ function ValidateRegistrationForm(e){
         let usrEmail = email.value.trim().toLowerCase();    
         let users = {username:usrName, password:pwd, email:usrEmail};
        
-        // removeErrMsgIfExist(strErrMsg);
-        
         if(JSON.parse(localStorage.getItem(usrName)))
-        {
+        {   
             checkErrMsgDisplay(strErrMsg);
             showErrorDialog();
         }
@@ -220,8 +226,7 @@ function ValidateRegistrationForm(e){
             strErrMsg = "Registration Successful!!";
             div.style.color = "green";
             div.textContent =strErrMsg;
-            div.style.display = "block";      
-
+            div.style.display = "block";  
             setTimeout(function() {
                 location.reload(); // Refresh the page
             }, 2000);
@@ -329,21 +334,23 @@ function showErrorDialog()
 }
 
 function checkErrMsgDisplay(errorMessage)
-{    
+{
+    
     let bFlag = false;
-    const listItems = ul.querySelectorAll('li'); 
-      
-    listItems.forEach((item) =>{
+    const listItems = ul.querySelectorAll('li');         
+    listItems.forEach((item) =>{ 
         if(item.textContent.trim().toLowerCase() === errorMessage.trim().toLowerCase())
         {bFlag = true}            
     }); 
     
+    
     if(!bFlag)
     {
         const li = document.createElement("li");
-        li.textContent = strErrMsg;        
+        li.textContent = strErrMsg;       
         ul.appendChild(li);
-    } 
+    }    
+   
 }
 
 function removeErrMsgIfExist(errorMessage)
