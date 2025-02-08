@@ -1,5 +1,13 @@
 const form = document.getElementById("registration");
-console.log(form);
+const frmLogin = document.getElementById("login");
+
+let loginUsrName = frmLogin.elements.username;
+let loginPwd = frmLogin.elements.password;
+let loginPersist = frmLogin.elements.persist;
+
+const div = document.getElementById("errorDisplay");
+const ul = document.createElement("ul");
+div.appendChild(ul);
 
 // ToDo Part3 --1  - Registration Form - Username Validation:
 // The username cannot be blank.
@@ -12,42 +20,42 @@ const password = form.elements.password;
 const passwordCheck = form.elements.passwordCheck;
 let inputUserName = "";
 
-const div = document.getElementById("errorDisplay");
-const ul = document.createElement("ul");
-div.appendChild(ul);
+
 let strErrMsg = "";
 
 username.addEventListener("change", function(e){
     inputUserName= e.target.value;
-    const regex = /^[A-Za-z0-9]+$/;  
+    const regex = /^[A-Za-z0-9]+$/;     
     
-    strErrMsg = "The username cannot contain any special characters or whitespace.";
+    strErrMsg = "The username cannot contain any special characters or whitespace."; 
     if(!regex.test(inputUserName))
-    {        
-        checkErrMsgDisplay(strErrMsg);    
-        username.focus();        
+    {           
+        checkErrMsgDisplay(strErrMsg);
+        username.focus(); 
+        //return false;       
     }
     else
     {
-        removeErrMsgIfExist(strErrMsg);
-    }    
+        removeErrMsgIfExist(strErrMsg);        
+    }   
+    showErrorDialog();   
  
     //Set removes duplicates
     const uniqueCharacters = new Set(inputUserName);
-    strErrMsg = "The username must contain at least two unique characters."; 
-    if(uniqueCharacters.size < 2){   
-        console.log("unique char present");       
-        checkErrMsgDisplay(strErrMsg);
-        username.focus();      
+    strErrMsg = "The username must contain at least two unique characters.";  
+    
+    if(uniqueCharacters.size < 2){                        
+        checkErrMsgDisplay(strErrMsg);        
+        username.focus();
+        //return false;      
     }
     else
     {
-        removeErrMsgIfExist(strErrMsg);
-    }
-    showErrorDialog();
+        removeErrMsgIfExist(strErrMsg);        
+    }   
+    showErrorDialog(); 
 
 });
-
 // ToDo Part3-- 2 -- Registration Form - Email Validation:
 // The email must be a valid email address.
 // The email must not be from the domain "example.com."
@@ -56,25 +64,27 @@ email.addEventListener("change",function(e){
     const strDomain = "example.com";
     strErrMsg = "The email must be a valid email address.";
 
-    if(!isValidEmail(inputEmail)){        
-        checkErrMsgDisplay(strErrMsg);
+    if(!isValidEmail(inputEmail)){               
+        checkErrMsgDisplay(strErrMsg);        
         email.focus();
+        // return false;
     } 
     else
     {        
-        removeErrMsgIfExist(strErrMsg);
-    }
-  
-    strErrMsg = "The email must not be from the domain 'example.com.'";
-    if(inputEmail.substring(inputEmail.indexOf('@')+1).trim().toLowerCase() ===  strDomain.trim().toLowerCase()){        
-        checkErrMsgDisplay(strErrMsg);
+        removeErrMsgIfExist(strErrMsg);        
+    }  
+    showErrorDialog();
+    
+    strErrMsg = "The email must not be from the domain 'example.com.'"; 
+    if(inputEmail.substring(inputEmail.indexOf('@')+1).trim().toLowerCase() ===  strDomain.trim().toLowerCase()){              
+        checkErrMsgDisplay(strErrMsg);        
         email.focus();
     }
     else
     {
-        removeErrMsgIfExist(strErrMsg);
-    }
-    showErrorDialog();
+        removeErrMsgIfExist(strErrMsg);        
+    } 
+    showErrorDialog();   
 
 });
 
@@ -107,110 +117,188 @@ passwordCheck.addEventListener("change", function(e){
 
 form.addEventListener("submit", ValidateRegistrationForm);
 
+// ToDo --Part 4: Login Form Validation Requirements
+frmLogin.addEventListener("submit", ValidateLoginForm);
+
+//---------------------------------------------------------------------
+// ToDo --Part 4: Login Form Validation Requirements
+// ToDo -- 1. Login Form - Username Validation:
+// The username cannot be blank.
+// The username must exist (within localStorage). Remember that usernames are stored in all lowercase, but the username field accepts (and should not invalidate) mixed-case input.
+// Todo -- 2. Login Form - Password Validation:
+// The password cannot be blank.
+// The password must be correct (validate against localStorage).
+
+// ToDo --3. Login Form - Form Submission:
+// If all validation is successful, clear all form fields and show a success message.
+// If "Keep me logged in" is checked, modify the success message to indicate this (normally, this would be handled by a variety of persistent login tools and technologies).
+
+
+function ValidateLoginForm(e){
+    e.preventDefault();
+    let lgnUName = loginUsrName.value.trim();
+    let lgnPwd = loginPwd.value.trim();
+    let lgnPersist = loginPersist.checked;
+   
+    
+    let userObj = JSON.parse(localStorage.getItem(lgnUName.toLowerCase()));      
+
+    if(!userObj)
+    {   
+        strErrMsg = "Username does not exist.";     
+        checkErrMsgDisplay(strErrMsg);
+        loginUsrName.focus();
+        showErrorDialog();
+    }
+    else
+    {         
+        if(lgnPwd !== userObj.password)
+        {    
+            removeErrMsgIfExist(strErrMsg); 
+            strErrMsg = "Password does not match.";         
+            checkErrMsgDisplay(strErrMsg);
+            loginPwd.focus();            
+            showErrorDialog();           
+        }
+        else
+        {       
+            removeErrMsgIfExist(strErrMsg); 
+            if(lgnPersist)
+            {
+                div.textContent = "Login Successful and You will stay logged in for future sessions.";                           
+            }
+            else{
+                div.textContent ="Login Successful!"
+            }
+            
+            strErrMsg="";
+            frmLogin.reset();
+            div.style.color ="green";            
+            div.style.display = "block";
+         
+            setTimeout(function() {
+                location.reload(); // Refresh the page
+            }, 2000);    
+           
+        }        
+    }  
+    return true;
+}
+
 // ToDo -- part 6--Registration Form - Username Validation (Part Two):
 // Now that we are storing usernames, create an additional validation rule for them...
 // Usernames must be unique ("that username is already taken" error). Remember that usernames are being stored all lowercase, so "learner" and "Learner" are not unique.
 
-
-//-------Helper Functions------------------------
 function ValidateRegistrationForm(e){   
 
     e.preventDefault();
     if(ul.hasChildNodes())
     {
-        showErrorDialog(); 
-        return false;
+        showErrorDialog();        
     }
     else{
         let usrName = username.value.trim().toLowerCase();
         let pwd = password.value.trim();
         let usrEmail = email.value.trim().toLowerCase();    
         let users = {username:usrName, password:pwd, email:usrEmail};
-        // console.log(users);
-
-        if(localStorage.getItem(usrName))
+       
+        removeErrMsgIfExist(strErrMsg);
+        
+        if(JSON.parse(localStorage.getItem(usrName)))
         {
-            div.textContent ="Sorry, Username already taken!"; 
+            strErrMsg ="Sorry, Username already taken!"; 
         }
         else
         {
             localStorage.setItem(usrName, JSON.stringify(users));               
             form.reset(); 
-            div.textContent = "Registration Successful!!";
+            strErrMsg = "Registration Successful!!";
             div.style.color = "green";
-        }        
-        div.style.display ="block";         
-        setTimeout(() => {
-            div.style.display = "none";
-            div.textContent = "";
-        },5000)
+        }
+        div.textContent =strErrMsg;
+
+        div.style.display = "block";
+        
+
+        setTimeout(function() {
+            location.reload(); // Refresh the page
+        }, 2000);
     }
     return true;
 }
 
+
+//----------------------------------------------------------------------
 function ValidatePassword(Password, passwordType)
 {
     const strPassword = "password";
     const passwordVal = password.value.trim();
     const confirmPasswordVal = passwordCheck.value.trim();
-
-    strErrMsg = "Password must have at least one uppercase, one lowercase letter, one number and one special character."; 
-    if(!isValidPassword(Password))
-    {
-        checkErrMsgDisplay(strErrMsg);
-
-        if(passwordType === "password")
-        {password.focus();}
-        else{passwordCheck.focus();}        
-    }
-    else
-    {        
-        removeErrMsgIfExist(strErrMsg);
-    }
      
-    strErrMsg = "Password cannot contain the word 'password' (uppercase, lowercase, or mixed).";   
+    strErrMsg = "Password must have at least one uppercase, one lowercase letter, one number and one special character.";
+    if(!isValidPassword(Password))
+    {        
+        checkErrMsgDisplay(strErrMsg);
+        
+        if(passwordType === "password")
+        {password.focus();}
+        else{passwordCheck.focus();}  
+        // return false;      
+    }
+    else
+    {        
+        removeErrMsgIfExist(strErrMsg);
+        
+    }
+    showErrorDialog();
+     
+    strErrMsg = "Password cannot contain the word 'password' (uppercase, lowercase, or mixed).";
     if(Password.trim().toLowerCase().indexOf(strPassword.trim().toLowerCase()) >= 0)
-    {
+    {        
         checkErrMsgDisplay(strErrMsg);
-
         if(passwordType === "password")
         {password.focus();}
-        else{passwordCheck.focus();}  
+        else{passwordCheck.focus();} 
+        // return false;  
     }
     else
     {        
-        removeErrMsgIfExist(strErrMsg);
-    }
- 
-    strErrMsg = "Password cannot contain the username.";     
-    if(Password.trim().toLowerCase().indexOf(inputUserName.trim().toLowerCase()) >= 0)
-    {
-        checkErrMsgDisplay(strErrMsg);
-
-        if(passwordType === "password")
-        {password.focus();}
-        else{passwordCheck.focus();}  
-    }
-    else
-    {        
-        removeErrMsgIfExist(strErrMsg);
-    }
-
-    strErrMsg = "Both passwords must match.";
-    if(confirmPasswordVal.trim() != ""){
-        if(passwordVal.trim().toLowerCase() !== confirmPasswordVal.trim().toLowerCase())
-        {checkErrMsgDisplay(strErrMsg);
+        removeErrMsgIfExist(strErrMsg);        
+    } 
+    showErrorDialog(); 
     
+    strErrMsg = "Password cannot contain the username."; 
+    if(Password.trim().toLowerCase().indexOf(inputUserName.trim().toLowerCase()) >= 0)
+    {        
+        checkErrMsgDisplay(strErrMsg);
+
+        if(passwordType === "password")
+        {password.focus();}
+        else{passwordCheck.focus();}  
+    }
+    else
+    {        
+        removeErrMsgIfExist(strErrMsg);
+    }
+    showErrorDialog(); 
+    
+    strErrMsg = "Both passwords must match."; 
+    if(confirmPasswordVal.trim() != ""){
+                
+        if(passwordVal.trim().toLowerCase() !== confirmPasswordVal.trim().toLowerCase())
+        {                       
+            checkErrMsgDisplay(strErrMsg);    
             if(passwordType === "password")
             {password.focus();}
             else{passwordCheck.focus();}  
         }
         else
-        {        
+        {                 
             removeErrMsgIfExist(strErrMsg);
         }
-    }   
+    }  
     showErrorDialog(); 
+    
 }
 
 function isValidPassword(password)
@@ -225,7 +313,9 @@ function isValidEmail(email) {
 }
 
 function showErrorDialog()
-{    
+{  
+    console.log(ul.hasChildNodes());  
+    console.log(ul.textContent);
     if(ul.hasChildNodes())
     {
         div.style.display = "block"; 
@@ -238,19 +328,26 @@ function showErrorDialog()
 
 function checkErrMsgDisplay(errorMessage)
 {
+    console.log(errorMessage); 
     let bFlag = false;
-    const listItems = ul.querySelectorAll('li');     
-    listItems.forEach((item) =>{        
+    const listItems = ul.querySelectorAll('li'); 
+    console.log(listItems);     
+    listItems.forEach((item) =>{ 
+        console.log(item.textContent);
+          
         if(item.textContent.trim().toLowerCase() === errorMessage.trim().toLowerCase())
         {bFlag = true}            
     }); 
     
+    console.log(bFlag); 
     if(!bFlag)
     {
         const li = document.createElement("li");
         li.textContent = strErrMsg;
+        console.log(li); 
         ul.appendChild(li);
-    }     
+    }    
+    console.log(ul.textContent);  
 }
 
 function removeErrMsgIfExist(errorMessage)
